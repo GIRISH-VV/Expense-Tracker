@@ -1,7 +1,7 @@
-import User from '../models.user.model.js'
+import User from '../models/user.model.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
-import { generateAccessToken, generaterefreshToken } from '../utils/token.js'
+import { generateAccessToken, generateRefreshToken } from '../utils/token.js'
 
 export const refreshAccessToken = async (req,res) => {
     const { refreshToken } = req.body
@@ -55,10 +55,10 @@ export const loginUser = async (req,res) => {
         if(!isMatch)
             return res.status(401).json({ success : false ,message : "Unauthorized"})
         const accessToken = generateAccessToken(user._id)
-        const refreshToken = generaterefreshToken(user._id)
+        const refreshToken = generateRefreshToken(user._id)
 
         user.refreshToken = refreshToken
-        await User.save()
+        await user.save()
 
         return res.status(200).json({ success : true ,
             message : "User loggedin Successfully",
