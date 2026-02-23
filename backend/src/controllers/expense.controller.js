@@ -19,18 +19,10 @@ export const get7daysExpenses = async (req, res) => {
       },
     }).sort({ date: -1 });
 
-    return res.status(200).json({
-      success: true,
-      filterDays: days,
-      count: expenses.length,
-      data: expenses,
-    });
+    return res.status(200).json({ success: true, filterDays: days, count: expenses.length, data: expenses});
 
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
