@@ -1,14 +1,18 @@
-import { useState } from "react";
-import {View,Text,TextInput,TouchableOpacity,StyleSheet,Alert} from "react-native";
+import { useContext, useState } from "react";
+import {View,Text,TextInput,TouchableOpacity,StyleSheet,Alert, ActivityIndicator} from "react-native";
 import { GlobalStyles } from "../constants/styles";
+import { loginUser, registerUser } from "../util/api";
+import { AuthContext } from "../store/auth-context";
 
 export default function AuthScreen({ navigation }){
     const [isLogin, setIsLogin] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const authCtx = useContext(AuthContext);
 
-    const handleAuth = () => {
+    const handleAuth = async () => {
 
         if(!isLogin && name.trim() === ""){
             Alert.alert("Error","Enter name");
@@ -20,13 +24,31 @@ export default function AuthScreen({ navigation }){
             return;
         }
 
-        if(isLogin){
+        setIsSubmitting(true);
+
+        try {
+          if(isLogin){
+            const response = await loginUser({ email, password });
+            if (!response?.accessToken) {
+              throw new Error("Access token not received");
+            }
+            authCtx.authenticate(response.accessToken);
             Alert.alert("Success", "Login Successful");
-            navigation.replace("ExpensesOverview");
+          }
+          else {
+            await registerUser({ name, email, password });
+            Alert.alert("Success", "Registered Successfully. Please login.");
+            setIsLogin(true);
+            setPassword("");
+          }
         }
-        else {
-            Alert.alert("Success", "Registered Successfully")
-            navigation.replace("ExpensesOverview");
+        catch (error) {
+          const message =
+            error?.response?.data?.message || "Authentication failed. Please try again.";
+          Alert.alert("Error", message);
+        }
+        finally {
+          setIsSubmitting(false);
         }
     }
 
@@ -62,10 +84,18 @@ export default function AuthScreen({ navigation }){
                     value={password}
                     onChangeText={setPassword}
                 />
-                <TouchableOpacity style={styles.button} onPress={handleAuth}>
-                    <Text style={styles.buttonText}>
-                        {isLogin ? "Login" : "Register"}
-                    </Text>
+                <TouchableOpacity
+                  style={[styles.button, isSubmitting && styles.buttonDisabled]}
+                  onPress={handleAuth}
+                  disabled={isSubmitting}
+                >
+                    {isSubmitting ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text style={styles.buttonText}>
+                          {isLogin ? "Login" : "Register"}
+                      </Text>
+                    )}
                 </TouchableOpacity>
                 <Text style={styles.link} onPress={() => setIsLogin(!isLogin)}>
                     {isLogin
@@ -114,6 +144,9 @@ const styles = StyleSheet.create({
     backgroundColor: GlobalStyles.colors.primary500,
     padding: 15,
     borderRadius: 8,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   buttonText: {
     color: "white",

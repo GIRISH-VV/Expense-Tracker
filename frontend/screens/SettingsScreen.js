@@ -1,7 +1,11 @@
 import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
 import { GlobalStyles } from '../constants/styles';
+import { useContext } from 'react';
+import { AuthContext } from '../store/auth-context';
 
 function SettingsScreen({ navigation }) {
+  const authCtx = useContext(AuthContext);
+
   function editProfileHandler() {
     navigation.navigate('EditProfile');
   }
@@ -13,12 +17,7 @@ function SettingsScreen({ navigation }) {
         text: 'Logout',
         style: 'destructive',
         onPress: () => {
-          const parentNavigation = navigation.getParent();
-          if (parentNavigation?.replace) {
-            parentNavigation.replace('Auth');
-            return;
-          }
-          navigation.navigate('Auth');
+          authCtx.logout();
         },
       },
     ]);

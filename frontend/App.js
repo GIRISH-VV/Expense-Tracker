@@ -13,6 +13,8 @@ import EditProfileScreen from './screens/EditProfileScreen';
 import { GlobalStyles } from './constants/styles';
 import IconButton from './components/ExpensesOutput/UI/IconButton';
 import ExpensesContextProvider from './store/expenses-context';
+import AuthContextProvider, { AuthContext } from './store/auth-context';
+import { useContext } from 'react';
 
 const Stack = createNativeStackNavigator();
 const BottomTabs = createBottomTabNavigator();
@@ -65,40 +67,63 @@ function ExpensesOverview() {
   );
 }
 
+function AuthStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: GlobalStyles.colors.primary500 },
+        headerTintColor: 'white',
+      }}>
+      <Stack.Screen
+        name="Auth"
+        component={AuthScreen}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function AuthenticatedStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: GlobalStyles.colors.primary500 },
+        headerTintColor: 'white',
+      }}>
+      <Stack.Screen name="ExpensesOverview"
+        component={ExpensesOverview}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="ManageExpense"
+        component={ManageExpense} options={{
+          presentation: 'modal'
+        }} />
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{ title: 'Edit Profile' }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function Navigation() {
+  const authCtx = useContext(AuthContext);
+  return authCtx.isAuthenticated ? <AuthenticatedStack /> : <AuthStack />;
+}
+
 
 export default function App() {
   return (
     <>
       <StatusBar style="light" />
-      <ExpensesContextProvider>
-      <NavigationContainer>
-        <Stack.Navigator
-        initialRouteName="Auth"
-        screenOptions={{
-          headerStyle: { backgroundColor: GlobalStyles.colors.primary500 },
-          headerTintColor: 'white',
-        }}>
-          <Stack.Screen
-           name="Auth"
-           component={AuthScreen}
-           options={{ headerShown: false }}
-          />
-          <Stack.Screen name="ExpensesOverview"
-           component={ExpensesOverview} 
-           options ={{ headerShown: false }}
-          />
-          <Stack.Screen name="ManageExpense" 
-          component={ManageExpense} options={{
-            presentation: 'modal'
-          }}/>
-          <Stack.Screen
-            name="EditProfile"
-            component={EditProfileScreen}
-            options={{ title: 'Edit Profile' }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-      </ExpensesContextProvider>
+      <AuthContextProvider>
+        <ExpensesContextProvider>
+          <NavigationContainer>
+            <Navigation />
+          </NavigationContainer>
+        </ExpensesContextProvider>
+      </AuthContextProvider>
     </>
     
   );

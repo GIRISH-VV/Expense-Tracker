@@ -4,9 +4,10 @@ import IconButton from '../components/ExpensesOutput/UI/IconButton';
 import { GlobalStyles } from '../constants/styles';
 import { ExpensesContext } from '../store/expenses-context';
 import ExpenseForm from '../components/ExpensesOutput/ManageExpense/ExpenseForm';
-import {storeExpense, updateExpense, deleteExpense} from '../util/http.js';
+import {storeExpense, updateExpense, deleteExpense} from '../util/api.js';
 import LoadingOverlay from '../components/ExpensesOutput/UI/LoadingOverlay.js';
 import ErrorOverlay from '../components/ExpensesOutput/UI/ErrorOverlay.js';
+import { AuthContext } from '../store/auth-context.js';
 
 
 function ManageExpense({route, navigation})  {
@@ -14,6 +15,7 @@ function ManageExpense({route, navigation})  {
   const[error,setError] = useState();
 
   const expensesCtx = useContext(ExpensesContext);
+  const authCtx = useContext(AuthContext);
 
   const editedExpenseId = route.params?.expenseId;
   const isEditing = !!editedExpenseId;
@@ -31,7 +33,7 @@ function ManageExpense({route, navigation})  {
 async  function deleteExpenseHandler() {
   setIsSubmitting(true);
   try{
-     await  deleteExpense(editedExpenseId);
+     await  deleteExpense(editedExpenseId, authCtx.token);
       expensesCtx.deleteExpense(editedExpenseId);
     navigation.goBack();
   }
@@ -57,9 +59,9 @@ async  function deleteExpenseHandler() {
     try{
       if (isEditing) {
       expensesCtx.updateExpense(editedExpenseId, expenseData);
-      await updateExpense(editedExpenseId,expenseData);
+      await updateExpense(editedExpenseId, expenseData, authCtx.token);
     } else {
-     const id = await storeExpense(expenseData);
+     const id = await storeExpense(expenseData, authCtx.token);
       expensesCtx.addExpense({...expenseData, id: id});
     }
       navigation.goBack();

@@ -1,19 +1,32 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, Alert } from 'react-native';
+import { useContext, useState } from 'react';
+import { View, Text, StyleSheet, TextInput, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { GlobalStyles } from '../constants/styles';
+import { updateProfile } from '../util/api';
+import { AuthContext } from '../store/auth-context';
 
 function EditProfileScreen({ navigation }) {
+  const authCtx = useContext(AuthContext);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
 
-  function saveHandler() {
+  async function saveHandler() {
     if (!name.trim() || !email.trim()) {
       Alert.alert('Invalid Input', 'Please enter both name and email.');
       return;
     }
 
-    Alert.alert('Success', 'Profile updated successfully.');
-    navigation.goBack();
+    setIsSubmitting(true);
+    try {
+      await updateProfile({ name, email }, authCtx.token);
+      Alert.alert('Success', 'Profile updated successfully.');
+      navigation.goBack();
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Could not update profile. Please try again.';
+      Alert.alert('Error', message);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -39,8 +52,16 @@ function EditProfileScreen({ navigation }) {
           autoCapitalize="none"
         />
 
-        <Pressable style={({ pressed }) => [styles.saveButton, pressed && styles.pressed]} onPress={saveHandler}>
-          <Text style={styles.saveText}>Save</Text>
+        <Pressable
+          style={({ pressed }) => [styles.saveButton, pressed && styles.pressed, isSubmitting && styles.disabled]}
+          onPress={saveHandler}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={styles.saveText}>Save</Text>
+          )}
         </Pressable>
       </View>
     </View>
@@ -87,5 +108,8 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.8,
+  },
+  disabled: {
+    opacity: 0.7,
   },
 });

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://10.0.2.2:5000/api";
+const API_BASE_URL = "http://10.0.2.2:3000/api";
 
 function authConfig(token){
     return{
@@ -41,7 +41,7 @@ export async function storeExpense(expenseData, token){
     return response.data.data._id;
 }
 
-export async function fetchExpense(token, days = 7){
+export async function fetchExpenses(token, days = 7){
     const response = await axios.get(
         `${API_BASE_URL}/expense?days=${days}`,
         authConfig(token)
@@ -49,7 +49,7 @@ export async function fetchExpense(token, days = 7){
     return response.data.data.map((item) => ({
         id: item._id,
         amount: item.amount,
-        data: new Date(item.data),
+        date: new Date(item.date),
         description: item.description,
     }));
 }
@@ -62,7 +62,7 @@ export async function fetchMonthlyExpenses(token, month, year){
     return response.data.data.map((item) => ({
         id: item._id,
         amount: item.amount,
-        date: new Date(item.data),
+        date: new Date(item.date),
         description: item.description,
     }));
 }
@@ -80,4 +80,13 @@ export function deleteExpense(id, token){
         `${API_BASE_URL}/expense/delete/${id}`,
         authConfig(token)
     );
+}
+
+export async function updateProfile(profileData, token){
+    const response = await axios.put(
+        `${API_BASE_URL}/user/updateProfile`,
+        profileData,
+        authConfig(token)
+    );
+    return response.data;
 }

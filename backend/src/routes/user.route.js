@@ -1,9 +1,9 @@
 import express from 'express'
-import { updateUser} from '../controllers/user.controller.js'
+import { updateProfile } from '../controllers/user.controller.js'
 import {protect} from '../middlewares/auth.middleware.js'
 
 const router = express.Router()
 
-router.put('/updateProfile', protect, updateUser)
+router.put('/updateProfile', protect, updateProfile)
 
 export default router
